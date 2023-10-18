@@ -143,7 +143,258 @@ knitr::include_graphics("imgs/adocao.png")
 - Dados do Sistema Nacional de Adoção e Acolhimento
 - Tempo até habilitação e adoção
 
+## Adoção: dashboard para pretendentes
 
+```{r out.width = "800", fig.align = "center", echo = FALSE}
+knitr::include_graphics("imgs/painel.png")
+```
+
+## Adoção: dashboard para pretendentes
+
+. . .
+
+Modelo Semiparamétrico de Cox
+
+. . .
+
+- Coeficientes $\beta$ que medem os efeitos das covariáveis sobre a função de taxa de falha
+
+. . .
+
+- Covariáveis:
+  - Idade máxima da criança
+  - Número de crianças aceitas
+
+## Modelo Semiparamétrico de Cox
+
+```{r}
+#| echo: true
+cox <- survival::coxph(
+  survival::Surv(tempo, teve_guarda) ~ n_criancas + crianca_idade_meses_max,
+  data = adocaoDash::base_modelo_cox
+)
+summary(cox)
+```
+
+## Problemas
+
+. . .
+
+```{r}
+## Proporção empírica x prob predita, probab de adoção em até 3 anos
+## Colunas: média teve_guarda por percentil
+## Pontos: Prob predita
+pctiles <- seq(.1, 1, 0.1)
+tbl <- adocaoDash::base_modelo_cox |>
+  dplyr::select(
+    teve_guarda, tempo, n_criancas, crianca_idade_meses_max, dt_fim
+  ) |>
+  dplyr::mutate(pred_tempo = 365*3)
+preds <- predict(cox, newdata = tbl, type = "survival", se.fit = TRUE)
+tbl <- tbl |>
+  dplyr::mutate(
+    prob = 1 - preds$fit,
+    lcl = 1 - (preds$fit - 1.96*preds$se.fit),
+    ucl = 1 - (preds$fit + 1.96*preds$se.fit),
+    percentile = cut(
+      prob,
+      quantile(prob, probs = pctiles),
+      labels = pctiles[2:length(pctiles)] * 100
+    ),
+    percentile = dplyr::coalesce(percentile, as.factor(10)),
+    percentile = factor(percentile, levels = seq(10, 100, 10))
+  )
+tbl |>
+  dplyr::mutate(teve_guarda_3anos = ifelse(tempo > 3*365, 0, teve_guarda)) |>
+  dplyr::group_by(percentile) |>
+  dplyr::mutate(media_guarda = mean(teve_guarda_3anos)/dplyr::n()) |>
+  dplyr::ungroup() |>
+  ggplot2::ggplot() +
+  ggplot2::geom_col(ggplot2::aes(x = percentile, y = media_guarda)) +
+  ggplot2::geom_point(ggplot2::aes(x = percentile, y = prob))
+
+```
+
+
+## Problemas
+
+. . .
+
+Taxas de falha proporcionais?
+
+A razão das taxas de falha (adoção) de duas crianças diferentes pode variar com o tempo
+
+- Sabemos que a idade da criança é importante no perfil
+- Processo de adoção é longo e pode demorar meses/anos.
+
+## Outra abordagem
+
+. . .
+
+Modelo logístico
+
+. . .
+
+- Dados de 2019 a 2022
+- Dadas as características, houve adoção em até 3 anos?
+
+## Modelo logístico
+
+Idade máxima da criança como covariável
+
+```{r}
+#| echo: true
+
+fit_idade <- parsnip::logistic_reg() |>
+  parsnip::set_engine("glm") |>
+  parsnip::set_mode("classification") |>
+  parsnip::fit(
+    resposta_bin ~ crianca_idade_meses_max,
+    data = adocaoDash::base_modelo_log
+  )
+parsnip::tidy(fit_idade)
+```
+
+## Modelo logístico 
+
+```{r}
+pred1 <- predict(fit_idade, adocaoDash::base_modelo_log, type = "prob") |>
+  dplyr::bind_cols(predict(fit_idade, adocaoDash::base_modelo_log)) |>
+  dplyr::bind_cols(dplyr::select(adocaoDash::base_modelo_log, resposta_bin))
+dplyr::bind_rows(
+  # acurácia
+  yardstick::accuracy(pred1, truth = resposta_bin, estimate = .pred_class),
+  # matriz confusão
+  # yardstick::conf_mat(pred1, truth = resposta_bin, estimate = .pred_class)
+  # sensibilidade
+  yardstick::sens(pred1, truth = resposta_bin, estimate = .pred_class),
+  # especificidade
+  yardstick::spec(pred1, truth = resposta_bin, estimate = .pred_class),
+  # F measure
+  yardstick::f_meas(pred1, truth = resposta_bin, estimate = .pred_class)
+) |>
+  knitr::kable()
+```
+
+## Curca ROC
+
+```{r}
+# ROC AUC
+yardstick::roc_curve(pred1, truth = resposta_bin, `.pred_mais de 3 anos ou não adotou`) |>
+  ggplot2::autoplot() +
+  ggplot2::labs(title = "Covariável: Idade máxima")
+
+```
+
+## Probabilidade de adoção X idade
+
+```{r}
+pred1 |>
+  dplyr::bind_cols(adocaoDash::base_modelo_log) |>
+  ggplot2::ggplot(ggplot2::aes(crianca_idade_meses_max, y = `.pred_menos de 3 anos`)) +
+  ggplot2::geom_point()
+```
+
+## Modelo final
+
+```{r}
+fit_idade_ncriancas_uf <- parsnip::logistic_reg() |>
+  parsnip::set_engine("glm") |>
+  parsnip::set_mode("classification") |>
+  parsnip::fit(
+    resposta_bin ~ crianca_idade_meses_max + n_criancas + uf_AC + uf_AL + uf_AM + uf_AP + uf_BA + uf_CE + uf_DF + uf_ES + uf_GO + uf_MA + uf_MG + uf_MS + uf_MT + uf_PA + uf_PB + uf_PE + uf_PI + uf_PR + uf_RJ + uf_RN + uf_RO + uf_RR + uf_RS + uf_SC + uf_SE + uf_SP + uf_TO,
+    data = adocaoDash::base_modelo_log
+  )
+parsnip::tidy(fit_idade_ncriancas_uf) |>
+  dplyr::filter(
+    !is.na(estimate), p.value < .1
+  )
+
+pred_idade_ncriancas_uf <- predict(
+  fit_idade_ncriancas_uf, adocaoDash::base_modelo_log, type = "prob"
+  ) |>
+  dplyr::bind_cols(predict(fit_idade_ncriancas_uf, adocaoDash::base_modelo_log)) |>
+  dplyr::bind_cols(dplyr::select(adocaoDash::base_modelo_log, resposta_bin))
+```
+
+## Modelo final
+
+```{r}
+dplyr::bind_rows(
+  # acurácia
+  yardstick::accuracy(pred_idade_ncriancas_uf, truth = resposta_bin, estimate = .pred_class),
+  # sensibilidade
+  yardstick::sens(pred_idade_ncriancas_uf, truth = resposta_bin, estimate = .pred_class),
+  # especificidade
+  yardstick::spec(pred_idade_ncriancas_uf, truth = resposta_bin, estimate = .pred_class),
+  # F measure
+  yardstick::f_meas(pred_idade_ncriancas_uf, truth = resposta_bin, estimate = .pred_class)
+) |>
+  knitr::kable()
+```
+
+## Curva ROC
+
+```{r}
+yardstick::roc_curve(pred_idade_ncriancas_uf, truth = resposta_bin, `.pred_mais de 3 anos ou não adotou`) |>
+  ggplot2::autoplot() +
+  ggplot2::labs(
+    title = "Covariáveis: Idade máxima + número máximo de crianças + UF"
+  )
+```
+
+## Probabilidade predita e proporção empírica
+
+```{r}
+pred_idade_ncriancas_uf |>
+  dplyr::mutate(
+    teve_guarda_3anos = ifelse(
+      resposta_bin == "menos de 3 anos", 1, 0
+    ),
+    prob = `.pred_menos de 3 anos`,
+    percentile = cut(
+      prob,
+      quantile(prob, probs = pctiles),
+      labels = pctiles[2:length(pctiles)] * 100
+    ),
+    percentile = dplyr::coalesce(percentile, as.factor(10)),
+    percentile = factor(percentile, levels = seq(10, 100, 10))
+  ) |>
+  dplyr::group_by(percentile) |>
+  dplyr::mutate(media_guarda = mean(teve_guarda_3anos)/dplyr::n()) |>
+  dplyr::ungroup() |>
+  ggplot2::ggplot() +
+  ggplot2::geom_col(ggplot2::aes(x = percentile, y = media_guarda)) +
+  ggplot2::geom_point(ggplot2::aes(x = percentile, y = prob))
+```
+
+## Média das probabilidades preditas e proporções empíricas
+
+```{r}
+pred_idade_ncriancas_uf |>
+  dplyr::mutate(
+    percentile = cut(
+      `.pred_menos de 3 anos`,
+      quantile(`.pred_menos de 3 anos`, probs = pctiles),
+      labels = pctiles[2:length(pctiles)] * 100
+    ),
+    resposta = ifelse(resposta_bin == "menos de 3 anos", 1, 0)
+  ) |>
+  dplyr::group_by(percentile) |>
+  dplyr::summarise(
+    media_pred = mean(`.pred_menos de 3 anos`),
+    media_resposta = mean(resposta)
+  ) |>
+  ggplot2::ggplot(ggplot2::aes(x = media_resposta, y = media_pred)) +
+  ggplot2::geom_point() +
+  ggplot2::geom_abline(slope = 1, intercept = 0)
+```
+
+## Resultado
+
+```{r out.width = "800", fig.align = "center", echo = FALSE}
+knitr::include_graphics("imgs/painel.png")
+```
 
 ## Obrigada! {.center style="text-align: center;"}
 
