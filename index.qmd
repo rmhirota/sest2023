@@ -1,0 +1,153 @@
+---
+title: "Como usamos estatística para ajudar no processo de adoção de crianças"
+subtitle: "XI Semana da Estatística - São Carlos - 2023"
+format:
+  revealjs:
+    theme: solarized
+    self-contained: true
+---
+
+## Olá! `r emo::ji("wave")` {.smaller}
+
+:::: {.columns}
+
+::: {.column width="30%"}
+
+```{r out.width = "220", fig.align = "left", echo = FALSE}
+knitr::include_graphics("imgs/renata.jpg")
+```
+::: 
+
+::: {.column width="70%"}
+**Renata Hirota** é jornalista de dados, formada na ECA-USP e no IME-USP. Lida com dados desde 2017 e atualmente trabalha na Associação Brasileira de Jurimetria. Colabora também com projetos jornalísticos, analisando dados e desenvolvendo ferramentas para jornalistas. Faz parte da comunidade R-Ladies São Paulo, que promove a diversidade de gênero na comunidade da linguagem de programação R.
+
+[hirota.dev](https://hirota.dev) | [abj.org.br](http://abj.org.br/)
+
+:::
+
+::::
+
+## O que é Jurimetria?
+
+. . .
+
+A Jurimetria utiliza métodos estatísticos e matemáticos para analisar dados jurídicos, buscando padrões e tendências.
+
+```{r out.width = "800", fig.align = "center", echo = FALSE}
+knitr::include_graphics("imgs/data_cowboy.png")
+```
+
+## O que é Jurimetria?
+
+Fazer jurimetria é pensar o direito de forma **concreta**: hipóteses que se manifestam ou não na realidade através das decisões judiciais.
+
+```{r out.width = "800", fig.align = "center", echo = FALSE}
+knitr::include_graphics("imgs/normal.png")
+```
+
+
+## Exemplo
+
+. . . 
+
+:::: {.columns}
+::: {.column width="50%"}
+**Estudo clássico**
+
+Princípios jurídicos e pensamento de especialistas sobre o valor de indenização por dano moral a ser concedido no contexto de direito do consumidor.
+:::
+::: {.column width="50%"}
+::: {.fragment}
+**Estudo jurimétrico**
+
+Valores típicos de dano moral em sentenças de primeira instância de processos envolvendo direito do consumidor no Tribunal de Justiça de São Paulo em 2020.
+:::
+:::
+::::
+
+## Aplicações da Jurimetria
+
+- Predição de decisões judiciais
+- Análise de tendências
+- Eficiência e celeridade processual
+
+. . . 
+
+**Dados**
+
+- Decisões
+- Metadados de processos (assunto, classe)
+
+::: {.notes}
+
+- Utilização de algoritmos para prever resultados de casos com base em dados históricos
+- Identificação de padrões e mudanças no comportamento de tribunais e juízes ao longo do tempo
+- Avaliação do desempenho dos órgãos judiciais e identificação de gargalos
+:::
+
+## Métodos utilizados
+
+. . .
+
+:::: {.columns}
+
+::: {.column width="50%"}
+- Estatística descritiva
+- Regressão linear
+- Regressão logística
+- Análise de sobrevivência
+:::
+::: {.column width="50%"}
+::: {.fragment}
+- Webscraping
+- Visualização de dados
+- Relatórios automatizados
+:::
+:::
+::::
+
+## Alguns projetos da ABJ {.center style="text-align: center;"}
+
+. . . 
+
+## Varas empresariais especializadas
+
+```{r out.width = "800", fig.align = "center", echo = FALSE}
+knitr::include_graphics("imgs/varas.png")
+```
+
+## Varas empresariais especializadas
+
+- Processos de direito empresarial tomam o **dobro** do tempo dos magistrados
+- Processos de recuperação judicial tomam o **triplo** do tempo dos magistrados
+
+Estudo: [https://abj.org.br/pesquisas/varas-empresariais/](https://abj.org.br/pesquisas/varas-empresariais/)
+
+
+## Perfis de crianças e tempo de espera de adoção
+
+- Estudo sobre tempo de espera de adoção de crianças
+- Perfil das crianças disponíveis incompatível com perfil desejado por pretendentes
+
+Estudo: [https://abj.org.br/pesquisas/adocao/](https://abj.org.br/pesquisas/adocao/)
+
+## Perfis de crianças e tempo de espera de adoção
+
+```{r out.width = "800", fig.align = "center", echo = FALSE}
+knitr::include_graphics("imgs/adocao.png")
+```
+
+## Adoção: dashboard para pretendentes
+
+- Parceria com o CNJ
+- Dados do Sistema Nacional de Adoção e Acolhimento
+- Tempo até habilitação e adoção
+
+
+
+## Obrigada! {.center style="text-align: center;"}
+
+Apresentação: [hirota.dev/sest2023](hirota.dev/sest2023)
+
+Contato: [rhirota@abj.org.br](mailto:rhirota@abj.org.br)
+
