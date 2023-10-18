@@ -33,7 +33,7 @@ knitr::include_graphics("imgs/renata.jpg")
 
 A Jurimetria utiliza métodos estatísticos e matemáticos para analisar dados jurídicos, buscando padrões e tendências.
 
-```{r out.width = "800", fig.align = "center", echo = FALSE}
+```{r out.width = "700", fig.align = "center", echo = FALSE}
 knitr::include_graphics("imgs/data_cowboy.png")
 ```
 
@@ -41,7 +41,7 @@ knitr::include_graphics("imgs/data_cowboy.png")
 
 Fazer jurimetria é pensar o direito de forma **concreta**: hipóteses que se manifestam ou não na realidade através das decisões judiciais.
 
-```{r out.width = "800", fig.align = "center", echo = FALSE}
+```{r out.width = "700", fig.align = "center", echo = FALSE}
 knitr::include_graphics("imgs/normal.png")
 ```
 
@@ -393,10 +393,14 @@ pred_idade_ncriancas_uf |>
 ## Resultado
 
 ```{r out.width = "800", fig.align = "center", echo = FALSE}
-knitr::include_graphics("imgs/painel.png")
+knitr::include_graphics("imgs/resultado.png")
 ```
 
 ## Obrigada! {.center style="text-align: center;"}
+
+```{r out.width = "800", fig.align = "center", echo = FALSE}
+knitr::include_graphics("imgs/fim.png")
+```
 
 Apresentação: [hirota.dev/sest2023](hirota.dev/sest2023)
 
